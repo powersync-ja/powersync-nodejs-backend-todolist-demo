@@ -1,0 +1,14 @@
+{
+  "name": "powersync-nodejs-backend-todolist-demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "author": "Mike Barnes <michael@journeyapps.com>",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jose": "^5.1.0"
+  }
+}
