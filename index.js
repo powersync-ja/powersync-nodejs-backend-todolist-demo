@@ -3,6 +3,6 @@ import config from "./config.js";
 
 const PORT = process.env.PORT || config.port;
 
-const server = app.listen(PORT, () => {
-    console.log('Server is running on port', PORT);
+app.listen(PORT, () => {
+    console.log(`Server is running @ http://127.0.0.1:${PORT}`);
 });

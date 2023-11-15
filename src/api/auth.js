@@ -1,5 +1,5 @@
 import express from "express";
-import jose from "jose";
+import {SignJWT, importJWK} from "jose";
 import config from "../../config.js";
 
 const router = express.Router();
@@ -10,16 +10,16 @@ const router = express.Router();
 router.get("/token", async (req, res) => {
     const decodedPrivateKey= new Buffer.from(config.powersync.privateKey, 'base64');
     const powerSyncPrivateKey = JSON.parse(new TextDecoder().decode(decodedPrivateKey));
-    const powerSyncKey = (await jose.importJWK(powerSyncPrivateKey));
+    const powerSyncKey = await importJWK(powerSyncPrivateKey);
 
-    const token = await new jose.SignJWT({})
+    const token = await new SignJWT({})
         .setProtectedHeader({
             alg: powerSyncPrivateKey.alg,
             kid: powerSyncPrivateKey.kid,
         })
-        .setSubject(user.id)
+        .setSubject("")
         .setIssuedAt()
-        .setIssuer(supabaseUrl)
+        .setIssuer("")
         .setAudience(config.powersync.url)
         .setExpirationTime('5m')
         .sign(powerSyncKey);
@@ -42,4 +42,4 @@ router.get("/keys", (req, res) => {
     });
 });
 
-export { router as authRouter }
+export { router as authRouter };

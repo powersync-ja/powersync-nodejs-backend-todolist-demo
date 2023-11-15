@@ -1,10 +1,13 @@
 import express from "express";
 import bodyParser from "body-parser";
 import {apiRouter} from "./src/api/index.js";
+import logRequest from "./src/middleware/logger.js";
+import config from "./config.js";
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(logRequest);
 
 app.use((req, res, next) => {
     // Website you wish to allow to connect
@@ -25,7 +28,15 @@ app.use((req, res, next) => {
     // Pass to next layer of middleware
     next();
 });
-
-app.use('/api', apiRouter);
+try {
+    app.get('/', (req, res) => {
+        res.status(200).send({
+            message: "powersync-nodejs-backend-todolist-demo"
+        });
+    });
+    app.use('/api', apiRouter);
+} catch (err) {
+    console.log("Unexpected error", err);
+}
 
 export default app;
