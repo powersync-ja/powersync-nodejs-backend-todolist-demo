@@ -1,7 +1,7 @@
 # PowerSync Node.js Backend: Todo List Demo
 
 ## Overview
-This repo containers a demo Node.js server application which has HTTP endpoints to authorize a PowerSync enabled application to sync data between a client device and a Postgres database.
+This repo contains a demo Node.js server application which has HTTP endpoints to authorize a PowerSync enabled application to sync data between a client device and a PostgreSQL database.
 
 The endpoints are as follows:
 
