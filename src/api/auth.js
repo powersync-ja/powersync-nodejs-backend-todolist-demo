@@ -19,7 +19,7 @@ router.get("/token", async (req, res) => {
         })
         .setSubject("")
         .setIssuedAt()
-        .setIssuer("")
+        .setIssuer(config.powersync.jwtIssuer)
         .setAudience(config.powersync.url)
         .setExpirationTime('5m')
         .sign(powerSyncKey);
