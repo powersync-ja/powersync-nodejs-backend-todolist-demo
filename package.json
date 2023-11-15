@@ -4,7 +4,6 @@
   "main": "index.js",
   "type": "module",
   "author": "Mike Barnes <michael@journeyapps.com>",
-  "license": "MIT",
   "scripts": {
     "start": "node index.js"
   },
