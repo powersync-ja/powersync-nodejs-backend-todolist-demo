@@ -60,6 +60,13 @@ router.delete("/", async (req, res) => {
     const table = req.body.table;
     const data = req.body.data;
 
+    if (!table || !data?.id) {
+        res.status(400).send({
+            message: "Invalid body provided, expected table and data"
+        });
+        return;
+    }
+
     let text = null;
     const values = [data.id];
 
@@ -80,10 +87,6 @@ router.delete("/", async (req, res) => {
     res.status(200).send({
         message: `PUT completed for ${table} ${data.id}`
     })
-
-    res.status(400).send({
-        message: "Invalid body provided, expected table and data"
-    });
 });
 
 const upsert = async (body, res) => {
