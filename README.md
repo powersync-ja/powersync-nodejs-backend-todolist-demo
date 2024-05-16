@@ -39,7 +39,7 @@ This app needs a Postgres instance that's hosted. For a free version for testing
 ## Running the app
 
 1. Clone the repository
-2. Follow the steps outlined in [PowerSync Custom Authentication Example](https://github.com/journeyapps/powersync-jwks-example) → [Generate a key-pair](https://github.com/journeyapps/powersync-jwks-example#1-generate-a-key-pair) to get the keys you need for this app. This is an easy way to get started with this demo app. You can use your own public/private keys as well.
+2. Follow the steps outlined in [PowerSync Custom Authentication Example](https://github.com/journeyapps/powersync-jwks-example) → [Generate a key-pair](https://github.com/journeyapps/powersync-jwks-example#1-generate-a-key-pair) to get the keys you need for this app. This is an easy way to get started with this demo app. You can use your own public/private keys as well. Note: This backend will generate a temporary key pair for development purposes if the keys are not present in the `.env` file. This should not be used in production.
 3. Create a new `.env` file in the root project directory and add the variables as defined in the `.env` file:
 
 ```shell
