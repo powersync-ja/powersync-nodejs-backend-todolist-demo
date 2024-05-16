@@ -5,7 +5,8 @@
   "type": "module",
   "author": "Mike Barnes <michael@journeyapps.com>",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "body-parser": "^1.20.2",
@@ -14,5 +15,8 @@
     "jose": "^5.3.0",
     "pg": "^8.11.3",
     "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.4"
   }
 }
