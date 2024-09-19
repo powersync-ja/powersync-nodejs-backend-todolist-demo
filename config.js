@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 const config = {
-  port: 6000,
+  port: process.env.PORT ? parseInt(process.env.PORT) : 6060,
   database: {
     host: process.env.DATABASE_HOST,
     port: process.env.DATABASE_PORT,
