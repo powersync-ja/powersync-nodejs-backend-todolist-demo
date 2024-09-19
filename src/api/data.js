@@ -109,10 +109,56 @@ router.delete('/', async (req, res) => {
   });
 });
 
+const types = {
+  date: (v) => new Date(v),
+  boolean: (v) => !!v,
+  string: (v) => String(v),
+  number: (v) => number(v)
+};
+
+const schema = {
+  lists: {
+    _id: types.string,
+    created_at: types.date,
+    name: types.string,
+    owner_id: types.string
+  },
+  todos: {
+    _id: types.string,
+    completed: types.boolean,
+    created_at: types.date,
+    created_by: types.string,
+    description: types.string,
+    list_id: types.string,
+    completed_at: types.date,
+    completed_by: types.string
+  }
+};
+
+/**
+ * A basic function to convert data according to a schema specified above.
+ *
+ * A production application should probably use a purpose-built library for this,
+ * and use MongoDB Schema Validation to enforce the types in the database.
+ */
+function applySchema(tableSchema, data) {
+  const converted = Object.entries(tableSchema)
+    .map(([key, converter]) => {
+      const rawValue = data[key];
+      if (typeof rawValue == 'undefined') {
+        return null;
+      } else if (rawValue == null) {
+        return [key, null];
+      } else {
+        return [key, converter(rawValue)];
+      }
+    })
+    .filter((v) => v != null);
+  return Object.fromEntries(converted);
+}
+
 /**
  * Apply a batch of PUT, PATCH and/or DELETE updates.
- *
- * This does not access checks - any table can be modified.
  *
  * @typedef {Object} DeleteOp
  * @prop {"DELETE"} op - op type
@@ -139,6 +185,11 @@ const updateBatch = async (batch) => {
   // TODO: Do type conversion. This currently persists data from the client as is,
   // only using strings or numbers for all data.
   for (let op of batch) {
+    const tableSchema = schema[op.table];
+    if (tableSchema == null) {
+      console.warn(`Ignoring update to unknown table ${op.table}`);
+      continue;
+    }
     const collection = db.collection(op.table);
     if (op.op == 'PUT') {
       const data = op.data;
@@ -146,14 +197,16 @@ const updateBatch = async (batch) => {
       const doc = { _id: id, ...data };
       delete doc.id;
 
-      await collection.insertOne(doc);
+      const converted = applySchema(tableSchema, doc);
+      await collection.insertOne(converted);
     } else if (op.op == 'PATCH') {
       const data = op.data;
       const id = op.id ?? data.id;
       const doc = { ...data };
       delete doc.id;
 
-      await collection.updateOne({ _id: id }, { $set: doc });
+      const converted = applySchema(tableSchema, doc);
+      await collection.updateOne({ _id: id }, { $set: converted });
     } else if (op.op == 'DELETE') {
       const id = op.id ?? op.data?.id;
       if (id != null) {
