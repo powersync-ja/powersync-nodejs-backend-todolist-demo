@@ -1,22 +1,12 @@
 import express from 'express';
-import pg from 'pg';
+import * as mongo from 'mongodb';
 import config from '../../config.js';
 
-const { Pool } = pg;
+const client = new mongo.MongoClient(config.database.uri);
+const db = client.db();
+await client.connect();
 
 const router = express.Router();
-
-const pool = new Pool({
-  host: config.database.host,
-  database: config.database.name,
-  user: config.database.user,
-  password: config.database.password,
-  port: config.database.port
-});
-
-pool.on('error', (err, client) => {
-  console.error('Pool connection failure to postgres:', err, client);
-});
 
 /**
  * Handle a batch of events.
@@ -145,84 +135,32 @@ router.delete('/', async (req, res) => {
  * @param {(DeleteOp | PutOp | PatchOp)[]} batch
  */
 const updateBatch = async (batch) => {
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
+  // TODO: Use batches & transactions.
+  // TODO: Do type conversion. This currently persists data from the client as is,
+  // only using strings or numbers for all data.
+  for (let op of batch) {
+    const collection = db.collection(op.table);
+    if (op.op == 'PUT') {
+      const data = op.data;
+      const id = op.id ?? data.id;
+      const doc = { _id: id, ...data };
+      delete doc.id;
 
-    for (let op of batch) {
-      const table = escapeIdentifier(op.table);
-      if (op.op == 'PUT') {
-        const data = op.data;
-        const with_id = { ...data, id: op.id ?? op.data.id };
+      await collection.insertOne(doc);
+    } else if (op.op == 'PATCH') {
+      const data = op.data;
+      const id = op.id ?? data.id;
+      const doc = { ...data };
+      delete doc.id;
 
-        const columnsEscaped = Object.keys(with_id).map(escapeIdentifier);
-        const columnsJoined = columnsEscaped.join(', ');
-
-        let updateClauses = [];
-
-        for (let key of Object.keys(data)) {
-          if (key == 'id') {
-            continue;
-          }
-          updateClauses.push(`${escapeIdentifier(key)} = EXCLUDED.${escapeIdentifier(key)}`);
-        }
-
-        const updateClause = updateClauses.length > 0 ? `DO UPDATE SET ${updateClauses.join(', ')}` : `DO NOTHING`;
-
-        const statement = `
-      WITH data_row AS (
-          SELECT (json_populate_record(null::${table}, $1::json)).*
-      )
-      INSERT INTO ${table} (${columnsJoined})
-      SELECT ${columnsJoined} FROM data_row
-      ON CONFLICT(id) ${updateClause}`;
-
-        await client.query(statement, [JSON.stringify(with_id)]);
-      } else if (op.op == 'PATCH') {
-        const data = op.data;
-        const with_id = { ...data, id: op.id ?? data.id };
-
-        let updateClauses = [];
-
-        for (let key of Object.keys(data)) {
-          if (key == 'id') {
-            continue;
-          }
-          updateClauses.push(`${escapeIdentifier(key)} = data_row.${escapeIdentifier(key)}`);
-        }
-
-        const statement = `
-      WITH data_row AS (
-          SELECT (json_populate_record(null::${table}, $1::json)).*
-      )
-      UPDATE ${table}
-      SET ${updateClauses.join(', ')}
-      FROM data_row
-      WHERE ${table}.id = data_row.id`;
-        await client.query(statement, [JSON.stringify(with_id)]);
-      } else if (op.op == 'DELETE') {
-        const id = op.id ?? op.data?.id;
-        const statement = `
-      WITH data_row AS (
-        SELECT (json_populate_record(null::${table}, $1::json)).*
-      )
-      DELETE FROM ${table}
-      USING data_row
-      WHERE ${table}.id = data_row.id`;
-        await client.query(statement, [JSON.stringify({ id: id })]);
+      await collection.updateOne({ _id: id }, { $set: doc });
+    } else if (op.op == 'DELETE') {
+      const id = op.id ?? op.data?.id;
+      if (id != null) {
+        await collection.deleteOne({ _id: id });
       }
     }
-    await client.query('COMMIT');
-  } catch (e) {
-    await client.query('ROLLBACK');
-    throw e;
-  } finally {
-    client.release();
   }
 };
-
-function escapeIdentifier(identifier) {
-  return `"${identifier.replace(/"/g, '""').replace(/\./g, '"."')}"`;
-}
 
 export { router as dataRouter };
