@@ -9,7 +9,7 @@ import { applySchema, schema } from './mongo-schema.js';
 export const createMongoPersister = async (uri) => {
   console.debug('Using MongoDB Persister');
 
-  const client = new mongo.MongoClient(config.database.uri);
+  const client = new mongo.MongoClient(uri);
   const db = client.db();
   await client.connect();
 

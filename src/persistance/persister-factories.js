@@ -38,6 +38,6 @@ import { createPostgresPersister } from './postgres/postgres-persistance.js';
  * @type {Record<string, PersisterFactory}
  */
 export const factories = {
-  mongo: createMongoPersister,
+  mongodb: createMongoPersister,
   postgres: createPostgresPersister
 };
