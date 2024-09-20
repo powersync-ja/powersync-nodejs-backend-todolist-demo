@@ -32,6 +32,39 @@ router.put('/', async (req, res) => {
   await upsert(req.body, res);
 });
 
+router.put('/checkpoint', async (req, res) => {
+  if (!req.body) {
+    res.status(400).send({
+      message: 'Invalid body provided'
+    });
+    return;
+  }
+
+  const client = await pool.connect();
+
+  console.log('Request body', req.body);
+
+  const { user_id = 'UserID', client_id = '1' } = req.body;
+
+  const response = await client.query(
+    `
+    INSERT INTO checkpoints(user_id, client_id, checkpoint)
+    VALUES 
+        ($1, $2, '1')
+    ON 
+        CONFLICT (user_id, client_id)
+    DO 
+        UPDATE SET checkpoint = checkpoints.checkpoint + 1
+    RETURNING checkpoint;
+    `,
+    [user_id, client_id]
+  );
+  client.release();
+  res.status(200).send({
+    checkpoint: response.rows[0].checkpoint
+  });
+});
+
 /**
  * Handle all PATCH events sent to the server by the client PowerSunc application
  */
