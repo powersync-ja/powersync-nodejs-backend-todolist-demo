@@ -3,7 +3,8 @@ import 'dotenv/config';
 const config = {
   port: process.env.PORT ? parseInt(process.env.PORT) : 6060,
   database: {
-    uri: process.env.MONGO_URI
+    type: process.env.DATABASE_TYPE || 'postgres',
+    uri: process.env.DATABASE_URI
   },
   powersync: {
     url: process.env.POWERSYNC_URL,

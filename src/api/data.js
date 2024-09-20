@@ -1,14 +1,14 @@
 import express from 'express';
-import * as mongo from 'mongodb';
 import config from '../../config.js';
-
-const client = new mongo.MongoClient(config.database.uri);
-const db = client.db();
-await client.connect();
+import { factories } from '../persistance/persister-factories.js';
 
 const router = express.Router();
 
-/**
+const persistenceFactory = factories[config.database.type];
+
+const { updateBatch } = await persistenceFactory(config.database.uri);
+
+/**s
  * Handle a batch of events.
  */
 router.post('/', async (req, res) => {
@@ -108,112 +108,5 @@ router.delete('/', async (req, res) => {
     message: `DELETE completed for ${table} ${data.id}`
   });
 });
-
-const types = {
-  date: (v) => new Date(v),
-  boolean: (v) => !!v,
-  string: (v) => String(v),
-  number: (v) => number(v)
-};
-
-const schema = {
-  lists: {
-    _id: types.string,
-    created_at: types.date,
-    name: types.string,
-    owner_id: types.string
-  },
-  todos: {
-    _id: types.string,
-    completed: types.boolean,
-    created_at: types.date,
-    created_by: types.string,
-    description: types.string,
-    list_id: types.string,
-    completed_at: types.date,
-    completed_by: types.string
-  }
-};
-
-/**
- * A basic function to convert data according to a schema specified above.
- *
- * A production application should probably use a purpose-built library for this,
- * and use MongoDB Schema Validation to enforce the types in the database.
- */
-function applySchema(tableSchema, data) {
-  const converted = Object.entries(tableSchema)
-    .map(([key, converter]) => {
-      const rawValue = data[key];
-      if (typeof rawValue == 'undefined') {
-        return null;
-      } else if (rawValue == null) {
-        return [key, null];
-      } else {
-        return [key, converter(rawValue)];
-      }
-    })
-    .filter((v) => v != null);
-  return Object.fromEntries(converted);
-}
-
-/**
- * Apply a batch of PUT, PATCH and/or DELETE updates.
- *
- * @typedef {Object} DeleteOp
- * @prop {"DELETE"} op - op type
- * @prop {string} table - table name
- * @prop {string=} id - record id
- * @prop {Object=} data - record data, including id (alternative to direct id)
- *
- * @typedef {Object} PutOp
- * @prop {"PUT"} op - op type
- * @prop {string} table - table name
- * @prop {string=} id - record id
- * @prop {Object} data - record data
- *
- * @typedef {Object} PatchOp
- * @prop {"PATCH"} op - op type
- * @prop {string} table - table name
- * @prop {string=} id - record id
- * @prop {Object} data - record data
- *
- * @param {(DeleteOp | PutOp | PatchOp)[]} batch
- */
-const updateBatch = async (batch) => {
-  // TODO: Use batches & transactions.
-  // TODO: Do type conversion. This currently persists data from the client as is,
-  // only using strings or numbers for all data.
-  for (let op of batch) {
-    const tableSchema = schema[op.table];
-    if (tableSchema == null) {
-      console.warn(`Ignoring update to unknown table ${op.table}`);
-      continue;
-    }
-    const collection = db.collection(op.table);
-    if (op.op == 'PUT') {
-      const data = op.data;
-      const id = op.id ?? data.id;
-      const doc = { _id: id, ...data };
-      delete doc.id;
-
-      const converted = applySchema(tableSchema, doc);
-      await collection.insertOne(converted);
-    } else if (op.op == 'PATCH') {
-      const data = op.data;
-      const id = op.id ?? data.id;
-      const doc = { ...data };
-      delete doc.id;
-
-      const converted = applySchema(tableSchema, doc);
-      await collection.updateOne({ _id: id }, { $set: converted });
-    } else if (op.op == 'DELETE') {
-      const id = op.id ?? op.data?.id;
-      if (id != null) {
-        await collection.deleteOne({ _id: id });
-      }
-    }
-  }
-};
 
 export { router as dataRouter };

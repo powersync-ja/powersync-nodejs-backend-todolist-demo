@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repo contains a demo Node.js server application which has HTTP endpoints to authorize a [PowerSync](https://www.powersync.com/) enabled application to sync data between a client device and a PostgreSQL database.
+This repo contains a demo Node.js server application which has HTTP endpoints to authorize a [PowerSync](https://www.powersync.com/) enabled application to sync data between a client device and a PostgreSQL or MongoDB database.
 
 The endpoints are as follows:
 
@@ -28,7 +28,9 @@ The endpoints are as follows:
 
 ## Packages
 
-[node-postgres](https://github.com/brianc/node-postgres) is used to interact with the Postgres database when a PowerSync enabled client performs requests to the `/api/data` endpoint.
+[node-postgres](https://github.com/brianc/node-postgres) is used to interact with the Postgres database when a Postgres + PowerSync enabled client performs requests to the `/api/data` endpoint.
+
+[mongodb](https://www.npmjs.com/package/mongodb) iis used to interact with the Postgres database when a MongoDB + PowerSync enabled client performs requests to the `/api/data` endpoint.
 
 [jose](https://github.com/panva/jose) is used to sign the JWT which PowerSync uses for authorization.
 
