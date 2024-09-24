@@ -30,7 +30,7 @@ The endpoints are as follows:
 
 [node-postgres](https://github.com/brianc/node-postgres) is used to interact with the Postgres database when a client performs requests to the `/api/data` endpoint.
 
-[mongodb](https://www.npmjs.com/package/mongodb) iis used to interact with the Postgres database when a MongoDB + PowerSync enabled client performs requests to the `/api/data` endpoint.
+[mongodb](https://www.npmjs.com/package/mongodb) is used to interact with the MongoDB database when a client performs requests to the `/api/data` endpoint.
 
 [jose](https://github.com/panva/jose) is used to sign the JWT which PowerSync uses for authorization.
 
