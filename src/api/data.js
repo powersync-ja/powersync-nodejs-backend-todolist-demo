@@ -8,7 +8,7 @@ const persistenceFactory = factories[config.database.type];
 
 const { updateBatch } = await persistenceFactory(config.database.uri);
 
-/**s
+/**
  * Handle a batch of events.
  */
 router.post('/', async (req, res) => {
