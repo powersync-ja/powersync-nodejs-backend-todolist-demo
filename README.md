@@ -28,7 +28,7 @@ The endpoints are as follows:
 
 ## Packages
 
-[node-postgres](https://github.com/brianc/node-postgres) is used to interact with the Postgres database when a Postgres + PowerSync enabled client performs requests to the `/api/data` endpoint.
+[node-postgres](https://github.com/brianc/node-postgres) is used to interact with the Postgres database when a client performs requests to the `/api/data` endpoint.
 
 [mongodb](https://www.npmjs.com/package/mongodb) iis used to interact with the Postgres database when a MongoDB + PowerSync enabled client performs requests to the `/api/data` endpoint.
 
