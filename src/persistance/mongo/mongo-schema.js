@@ -2,7 +2,7 @@ export const types = {
   date: (v) => new Date(v),
   boolean: (v) => !!v,
   string: (v) => String(v),
-  number: (v) => number(v)
+  number: (v) => Number(v)
 };
 
 export const schema = {
