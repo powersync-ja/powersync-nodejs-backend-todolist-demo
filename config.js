@@ -1,13 +1,10 @@
 import 'dotenv/config';
 
 const config = {
-  port: 6000,
+  port: process.env.PORT ? parseInt(process.env.PORT) : 6060,
   database: {
-    host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
-    name: process.env.DATABASE_NAME,
-    user: process.env.DATABASE_USER,
-    password: process.env.DATABASE_PASSWORD
+    type: process.env.DATABASE_TYPE || 'postgres',
+    uri: process.env.DATABASE_URI
   },
   powersync: {
     url: process.env.POWERSYNC_URL,
