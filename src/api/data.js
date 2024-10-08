@@ -45,12 +45,13 @@ router.put('/', async (req, res) => {
   }
 
   try {
-    await updateBatch([{ op: 'PUT', type: req.body.table, data: req.body.data }]);
+    await updateBatch([{ op: 'PUT', table: req.body.table, data: req.body.data }]);
 
     res.status(200).send({
       message: `PUT completed for ${req.body.table} ${req.body.data.id}`
     });
   } catch (e) {
+    console.error(e.stack ?? e.message);
     res.status(400).send({
       message: `Request failed: ${e.message}`
     });
@@ -69,12 +70,13 @@ router.patch('/', async (req, res) => {
   }
 
   try {
-    await updateBatch([{ op: 'PATCH', type: req.body.table, data: req.body.data }]);
+    await updateBatch([{ op: 'PATCH', table: req.body.table, data: req.body.data }]);
 
     res.status(200).send({
       message: `PATCH completed for ${req.body.table}`
     });
   } catch (e) {
+    console.error(e.stack ?? e.message);
     res.status(400).send({
       message: `Request failed: ${e.message}`
     });
@@ -82,7 +84,7 @@ router.patch('/', async (req, res) => {
 });
 
 /**
- * Handle all DELETE events sent to the server by the client PowerSunc application
+ * Handle all DELETE events sent to the server by the client PowerSync application
  */
 router.delete('/', async (req, res) => {
   if (!req.body) {
@@ -102,7 +104,7 @@ router.delete('/', async (req, res) => {
     return;
   }
 
-  await updateBatch([{ op: 'DELETE', type: table, data: data }]);
+  await updateBatch([{ op: 'DELETE', table: table, data: data }]);
 
   res.status(200).send({
     message: `DELETE completed for ${table} ${data.id}`

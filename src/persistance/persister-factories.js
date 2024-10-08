@@ -31,11 +31,11 @@ import { createPostgresPersister } from './postgres/postgres-persistance.js';
 
  * @callback PersisterFactory
  * @param {string} URI -
- * @returns {Promise<Persister>}
+ * @returns {Promise<Persister> | Persister}
  */
 
 /**
- * @type {Record<string, PersisterFactory}
+ * @type {Record<string, PersisterFactory>}
  */
 export const factories = {
   mongodb: createMongoPersister,
