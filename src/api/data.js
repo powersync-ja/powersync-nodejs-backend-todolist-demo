@@ -51,6 +51,7 @@ router.put('/', async (req, res) => {
       message: `PUT completed for ${req.body.table} ${req.body.data.id}`
     });
   } catch (e) {
+    console.error(e.stack ?? e.message);
     res.status(400).send({
       message: `Request failed: ${e.message}`
     });
@@ -75,6 +76,7 @@ router.patch('/', async (req, res) => {
       message: `PATCH completed for ${req.body.table}`
     });
   } catch (e) {
+    console.error(e.stack ?? e.message);
     res.status(400).send({
       message: `Request failed: ${e.message}`
     });
@@ -82,7 +84,7 @@ router.patch('/', async (req, res) => {
 });
 
 /**
- * Handle all DELETE events sent to the server by the client PowerSunc application
+ * Handle all DELETE events sent to the server by the client PowerSync application
  */
 router.delete('/', async (req, res) => {
   if (!req.body) {
