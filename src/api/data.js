@@ -45,7 +45,7 @@ router.put('/', async (req, res) => {
   }
 
   try {
-    await updateBatch([{ op: 'PUT', type: req.body.table, data: req.body.data }]);
+    await updateBatch([{ op: 'PUT', table: req.body.table, data: req.body.data }]);
 
     res.status(200).send({
       message: `PUT completed for ${req.body.table} ${req.body.data.id}`
@@ -69,7 +69,7 @@ router.patch('/', async (req, res) => {
   }
 
   try {
-    await updateBatch([{ op: 'PATCH', type: req.body.table, data: req.body.data }]);
+    await updateBatch([{ op: 'PATCH', table: req.body.table, data: req.body.data }]);
 
     res.status(200).send({
       message: `PATCH completed for ${req.body.table}`
@@ -102,7 +102,7 @@ router.delete('/', async (req, res) => {
     return;
   }
 
-  await updateBatch([{ op: 'DELETE', type: table, data: data }]);
+  await updateBatch([{ op: 'DELETE', table: table, data: data }]);
 
   res.status(200).send({
     message: `DELETE completed for ${table} ${data.id}`

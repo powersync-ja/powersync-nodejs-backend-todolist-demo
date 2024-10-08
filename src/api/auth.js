@@ -37,7 +37,7 @@ async function ensureKeys() {
     base64Keys.public = generated.publicBase64;
   }
 
-  const decodedPrivateKey = new Buffer.from(base64Keys.private, 'base64');
+  const decodedPrivateKey = Buffer.from(base64Keys.private, 'base64');
   const powerSyncPrivateKey = JSON.parse(new TextDecoder().decode(decodedPrivateKey));
   keys.privateKey = {
     alg: powerSyncPrivateKey.alg,
@@ -45,7 +45,7 @@ async function ensureKeys() {
     key: await importJWK(powerSyncPrivateKey)
   };
 
-  const decodedPublicKey = new Buffer.from(base64Keys.public, 'base64');
+  const decodedPublicKey = Buffer.from(base64Keys.public, 'base64');
   keys.publicKey = JSON.parse(new TextDecoder().decode(decodedPublicKey));
 }
 

@@ -15,7 +15,7 @@ export const createMongoPersister = async (uri) => {
 
   return {
     /**
-     * @type {import('../persister-factories').BatchPersister}
+     * @type {import('../persister-factories.js').BatchPersister}
      */
     updateBatch: async (batch) => {
       // TODO: Use batches & transactions.

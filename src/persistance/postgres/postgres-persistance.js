@@ -32,7 +32,7 @@ export const createPostgresPersister = (uri) => {
 
   return {
     /**
-     * @type {import('../persister-factories').BatchPersister}
+     * @type {import('../persister-factories.js').BatchPersister}
      */
     updateBatch: async (batch) => {
       const client = await pool.connect();
