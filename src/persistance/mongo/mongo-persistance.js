@@ -13,10 +13,25 @@ export const createMongoPersister = async (uri) => {
   const db = client.db();
   await client.connect();
 
-  return {
-    /**
-     * @type {import('../persister-factories.js').BatchPersister}
-     */
+  /**
+   * @type {import('../persister-factories.js').Persister}
+   */
+  const persister = {
+    createCheckpoint: async (user_id, client_id) => {
+      const doc = await db.collection('checkpoints').findOneAndUpdate(
+        {
+          user_id,
+          client_id
+        },
+        {
+          $inc: {
+            checkpoint: 1n
+          }
+        },
+        { upsert: true, returnDocument: 'after' }
+      );
+      return doc.checkpoint;
+    },
     updateBatch: async (batch) => {
       // TODO: Use batches & transactions.
       // TODO: Do type conversion. This currently persists data from the client as is,
@@ -53,4 +68,6 @@ export const createMongoPersister = async (uri) => {
       }
     }
   };
+
+  return persister;
 };

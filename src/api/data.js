@@ -6,7 +6,7 @@ const router = express.Router();
 
 const persistenceFactory = factories[config.database.type];
 
-const { updateBatch } = await persistenceFactory(config.database.uri);
+const { updateBatch, createCheckpoint } = await persistenceFactory(config.database.uri);
 
 /**
  * Handle a batch of events.
@@ -56,6 +56,22 @@ router.put('/', async (req, res) => {
       message: `Request failed: ${e.message}`
     });
   }
+});
+
+router.put('/checkpoint', async (req, res) => {
+  if (!req.body) {
+    res.status(400).send({
+      message: 'Invalid body provided'
+    });
+    return;
+  }
+  const { user_id = 'UserID', client_id = '1' } = req.body;
+
+  const checkpoint = await createCheckpoint(user_id, client_id);
+
+  res.status(200).send({
+    checkpoint
+  });
 });
 
 /**
