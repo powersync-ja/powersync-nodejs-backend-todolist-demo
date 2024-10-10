@@ -6,7 +6,7 @@ const router = express.Router();
 
 const persistenceFactory = factories[config.database.type];
 
-const { updateBatch } = await persistenceFactory(config.database.uri);
+const { updateBatch, createCheckpoint } = await persistenceFactory(config.database.uri);
 
 /**
  * Handle a batch of events.
@@ -65,29 +65,12 @@ router.put('/checkpoint', async (req, res) => {
     });
     return;
   }
-
-  const client = await pool.connect();
-
-  console.log('Request body', req.body);
-
   const { user_id = 'UserID', client_id = '1' } = req.body;
 
-  const response = await client.query(
-    `
-    INSERT INTO checkpoints(user_id, client_id, checkpoint)
-    VALUES 
-        ($1, $2, '1')
-    ON 
-        CONFLICT (user_id, client_id)
-    DO 
-        UPDATE SET checkpoint = checkpoints.checkpoint + 1
-    RETURNING checkpoint;
-    `,
-    [user_id, client_id]
-  );
-  client.release();
+  const checkpoint = await createCheckpoint(user_id, client_id);
+
   res.status(200).send({
-    checkpoint: response.rows[0].checkpoint
+    checkpoint
   });
 });
 

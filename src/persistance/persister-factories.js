@@ -26,8 +26,14 @@ import { createPostgresPersister } from './postgres/postgres-persistance.js';
  * @param {(DeleteOp | PutOp | PatchOp)[]} batch
  * @returns {Promise<void>}
  * 
+ * @callback CreateCheckpoint
+ * @param {string} user_id
+ * @param {string} client_id
+ * @returns {Promise<bigint>} checkpoint
+ * 
  * @typedef {Object} Persister
  * @prop {BatchPersister} updateBatch
+ * @prop {CreateCheckpoint} createCheckpoint
 
  * @callback PersisterFactory
  * @param {string} URI -
