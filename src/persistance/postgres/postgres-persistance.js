@@ -30,10 +30,10 @@ export const createPostgresPersister = (uri) => {
     console.error('Pool connection failure to postgres:', err, client);
   });
 
-  return {
-    /**
-     * @type {import('../persister-factories.js').BatchPersister}
-     */
+  /**
+   * @type {import('../persister-factories.js').Persister}
+   */
+  const persister = {
     updateBatch: async (batch) => {
       const client = await pool.connect();
       try {
@@ -109,6 +109,27 @@ export const createPostgresPersister = (uri) => {
       } finally {
         client.release();
       }
+    },
+    async createCheckpoint(user_id, client_id) {
+      const response = await pool.query(
+        `
+    INSERT INTO checkpoints(user_id, client_id, checkpoint)
+    VALUES 
+        ($1, $2, '1')
+    ON 
+        CONFLICT (user_id, client_id)
+    DO 
+        UPDATE SET checkpoint = checkpoints.checkpoint + 1
+    RETURNING checkpoint;
+    `,
+        [user_id, client_id]
+      );
+      /**
+       * @type {bigint}
+       */
+      const checkpoint = response.rows[0].checkpoint;
+      return checkpoint;
     }
   };
+  return persister;
 };
