@@ -1,4 +1,5 @@
 import { createMongoPersister } from './mongo/mongo-persistance.js';
+import { createMySQLPersister } from './mysql/mysql-persistance.js';
 import { createPostgresPersister } from './postgres/postgres-persistance.js';
 
 /**
@@ -39,5 +40,6 @@ import { createPostgresPersister } from './postgres/postgres-persistance.js';
  */
 export const factories = {
   mongodb: createMongoPersister,
-  postgres: createPostgresPersister
+  postgres: createPostgresPersister,
+  mysql: createMySQLPersister
 };
