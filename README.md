@@ -32,6 +32,8 @@ The endpoints are as follows:
 
 [mongodb](https://www.npmjs.com/package/mongodb) is used to interact with the MongoDB database when a client performs requests to the `/api/data` endpoint.
 
+[mysql2](https://www.npmjs.com/package/mysql2) is used to interact with the MySQL database when a client performs requests to the `/api/data` endpoint.
+
 [jose](https://github.com/panva/jose) is used to sign the JWT which PowerSync uses for authorization.
 
 ## Requirements
@@ -55,7 +57,7 @@ nvm use
 ```
 
 ```shell
-yarn install
+pnpm install
 ```
 
 ## Start App
@@ -63,7 +65,7 @@ yarn install
 1. Run the following to start the application
 
 ```shell
-yarn start
+pnpm start
 ```
 
 This will start the app on `http://127.0.0.1:PORT`, where PORT is what you specify in your `.env` file.
