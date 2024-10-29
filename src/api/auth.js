@@ -58,8 +58,6 @@ router.get('/token', async (req, res) => {
 
   const { user_id = 'UserID ' } = req.query;
 
-  console.log('UserID for token is', user_id);
-
   const token = await new SignJWT({})
     .setProtectedHeader({
       alg: powerSyncKey.alg,
