@@ -56,12 +56,14 @@ router.get('/token', async (req, res) => {
   await ensureKeys();
   const powerSyncKey = keys.privateKey;
 
+  const { user_id = 'UserID ' } = req.query;
+
   const token = await new SignJWT({})
     .setProtectedHeader({
       alg: powerSyncKey.alg,
       kid: powerSyncKey.kid
     })
-    .setSubject('UserID')
+    .setSubject(user_id)
     .setIssuedAt()
     .setIssuer(config.powersync.jwtIssuer)
     .setAudience(config.powersync.url)

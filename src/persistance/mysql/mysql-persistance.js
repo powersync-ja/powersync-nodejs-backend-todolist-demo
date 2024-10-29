@@ -13,8 +13,43 @@ export const createMySQLPersister = (uri) => {
   console.debug('Using MySQL Persister');
 
   const pool = mysql.createPool(uri);
+  /**
+   * @type {import('../persister-factories.js').Persister}
+   */
+  const persister = {
+    async createCheckpoint(user_id, client_id) {
+      const connection = await pool.getConnection();
+      try {
+        await connection.beginTransaction();
+        await connection.query(
+          `
+      INSERT INTO checkpoints
+         (user_id, client_id, checkpoint)
+      VALUES (?, ?, 1)
+      ON DUPLICATE KEY UPDATE 
+        checkpoint = checkpoint + 1;
+      `,
+          [user_id, client_id]
+        );
+        const [rows] = await connection.query(
+          `
+           SELECT checkpoint FROM checkpoints WHERE user_id = ? AND client_id = ?;
+           `,
+          [user_id, client_id]
+        );
 
-  return {
+        await connection.commit();
+        /**
+         * @type {bigint}
+         */
+        const checkpoint = rows[0].checkpoint;
+        return checkpoint;
+      } catch (ex) {
+        await connection.rollback();
+      } finally {
+        connection.release();
+      }
+    },
     /**
      * @type {import('../persister-factories.js').BatchPersister}
      */
@@ -82,4 +117,5 @@ export const createMySQLPersister = (uri) => {
       }
     }
   };
+  return persister;
 };
