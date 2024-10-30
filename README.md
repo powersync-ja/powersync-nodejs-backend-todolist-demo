@@ -28,7 +28,7 @@ The endpoints are as follows:
 
 ## Packages
 
-[node-postgres](https://github.com/brianc/node-postgres) is used to interact with the Postgres database when a client performs requests to the `/api/data` endpoint.
+[node-postgres](https://github.com/brianc/node-postgres) is used to interact with the Postgres database when a client performs requests to the `/api/data` endpoint. 
 
 [mongodb](https://www.npmjs.com/package/mongodb) is used to interact with the MongoDB database when a client performs requests to the `/api/data` endpoint.
 
@@ -36,9 +36,6 @@ The endpoints are as follows:
 
 [jose](https://github.com/panva/jose) is used to sign the JWT which PowerSync uses for authorization.
 
-## Requirements
-
-This app needs a Postgres instance that's hosted. For a free version for testing/demo purposes, visit [Supabase](https://supabase.com/).
 
 ## Running the app
 
