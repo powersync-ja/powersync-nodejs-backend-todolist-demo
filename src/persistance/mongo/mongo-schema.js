@@ -10,8 +10,25 @@ export const schema = {
     _id: types.string,
     user_id: types.string,
     count: types.number,
+  },
+  ists: {
+    _id: types.string,
+    created_at: types.date,
+    name: types.string,
+    owner_id: types.string
+  },
+  todos: {
+    _id: types.string,
+    completed: types.boolean,
+    created_at: types.date,
+    created_by: types.string,
+    description: types.string,
+    list_id: types.string,
+    completed_at: types.date,
+    completed_by: types.string
   }
 };
+
 
 /**
  * A basic function to convert data according to a schema specified above.
