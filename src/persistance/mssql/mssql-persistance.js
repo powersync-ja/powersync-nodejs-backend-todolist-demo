@@ -76,7 +76,7 @@ export const createMSSQLPersister = async (uri) => {
             USING (SELECT ${columnParamaters}) AS source (${columns})
               ON t.[id] = source.[id]
             ${updateClause}
-            ${insertClause}
+            ${insertClause};
             `;
 
             console.log(statement);
