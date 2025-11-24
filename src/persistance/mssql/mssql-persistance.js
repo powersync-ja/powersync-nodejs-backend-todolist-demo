@@ -50,10 +50,13 @@ export const createMSSQLPersister = async (uri) => {
             const data = op.data;
             const with_id = { ...data, id: op.id ?? op.data.id };
 
+            // Get column names (without escaping for parameters)
+            const columnNames = Object.keys(with_id);
             // [id], [col1], [col3]
-            const columnsEscaped = Object.keys(with_id).map(escapeIdentifier);
+            const columnsEscaped = columnNames.map(escapeIdentifier);
             const columns = columnsEscaped.join(', ');
-            const columnParamaters = columnsEscaped.map((c) => `@${c}`).join(', ');
+            // Parameter names should not have brackets: @id, @col1, @col3
+            const columnParamaters = columnNames.map((c) => `@${c}`).join(', ');
             const sourceColumns = columnsEscaped.map(column => `source.${column}`).join(', ');
 
             let updateClauses = [];
@@ -71,13 +74,14 @@ export const createMSSQLPersister = async (uri) => {
             const statement = `
             MERGE INTO ${table} AS t
             USING (SELECT ${columnParamaters}) AS source (${columns})
-              ON t.id = source.id
+              ON t.[id] = source.[id]
             ${updateClause}
             ${insertClause}
             `;
 
             const request = transaction.request();
-            for (const column of columnsEscaped) {
+            // Use original column names (not escaped) for parameter names
+            for (const column of columnNames) {
               request.input(column, with_id[column]);
             }
             const result = await request.query(statement);
