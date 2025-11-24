@@ -79,15 +79,13 @@ export const createMSSQLPersister = async (uri) => {
             ${insertClause};
             `;
 
-            console.log(statement);
-
             const request = transaction.request();
             // Use original column names (not escaped) for parameter names
             for (const column of columnNames) {
               request.input(column, with_id[column]);
             }
-            const result = await request.query(statement);
-            console.log(result);
+            await request.query(statement);
+
           } else if (op.op == 'PATCH') {
             const data = op.data;
             const with_id = { ...data, id: op.id ?? data.id };
@@ -106,22 +104,18 @@ export const createMSSQLPersister = async (uri) => {
               SET ${updateClauses.join(', ')}
               WHERE id = @id`;
 
-            console.log(statement);  
-            
             const request = transaction.request();
             for (const column of Object.keys(with_id)) {
               request.input(column, with_id[column]);
             }
 
-            const result = await request.query(statement);
-            console.log(result);
+            await request.query(statement);
           } else if (op.op == 'DELETE') {
             const id = op.id ?? op.data?.id;
             const statement = `DELETE FROM ${table} WHERE id = @id`;
             const request = transaction.request();
             request.input('id', id);
-            const result = await request.query(statement);
-            console.log(result);
+            await request.query(statement);
           }
         }
         await transaction.commit();
