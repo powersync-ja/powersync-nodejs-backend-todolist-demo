@@ -22,6 +22,10 @@ export const createMSSQLPersister = async (uri) => {
     server: url.hostname,
     port: parseInt(url.port),
     database: url.pathname.split('/')[1],
+    options: {
+      encrypt: true,
+      trustServerCertificate: true
+    }
   });
 
   pool.on('error', (err) => {
