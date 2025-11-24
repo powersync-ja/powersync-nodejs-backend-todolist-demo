@@ -79,6 +79,8 @@ export const createMSSQLPersister = async (uri) => {
             ${insertClause}
             `;
 
+            console.log(statement);
+
             const request = transaction.request();
             // Use original column names (not escaped) for parameter names
             for (const column of columnNames) {
@@ -103,6 +105,8 @@ export const createMSSQLPersister = async (uri) => {
               UPDATE ${table}
               SET ${updateClauses.join(', ')}
               WHERE id = @id`;
+
+            console.log(statement);  
             
             const request = transaction.request();
             for (const column of Object.keys(with_id)) {
