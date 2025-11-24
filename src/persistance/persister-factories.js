@@ -1,6 +1,7 @@
 import { createMongoPersister } from './mongo/mongo-persistance.js';
 import { createMySQLPersister } from './mysql/mysql-persistance.js';
 import { createPostgresPersister } from './postgres/postgres-persistance.js';
+import { createMSSQLPersister } from './mssql/mssql-persistance.js';
 
 /**
  * Apply a batch of PUT, PATCH and/or DELETE updates.
@@ -47,5 +48,6 @@ import { createPostgresPersister } from './postgres/postgres-persistance.js';
 export const factories = {
   mongodb: createMongoPersister,
   postgres: createPostgresPersister,
-  mysql: createMySQLPersister
+  mysql: createMySQLPersister,
+  mssql: createMSSQLPersister
 };

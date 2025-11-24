@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repo contains a demo Node.js server application which has HTTP endpoints to authorize a [PowerSync](https://www.powersync.com/) enabled application to sync data between a client device and a PostgreSQL or MongoDB database.
+This repo contains a demo Node.js server application which has HTTP endpoints to authorize a [PowerSync](https://www.powersync.com/) enabled application to sync data between a client device and a PostgreSQL, MySQL, MSSQL or MongoDB database.
 
 The endpoints are as follows:
 
@@ -34,11 +34,16 @@ The endpoints are as follows:
 
 [mysql2](https://www.npmjs.com/package/mysql2) is used to interact with the MySQL database when a client performs requests to the `/api/data` endpoint.
 
+[node-mssql](https://www.npmjs.com/package/mssql) is used to connect to a MSSQL database to perform operations from the `/api/data` endpoint.
+
 [jose](https://github.com/panva/jose) is used to sign the JWT which PowerSync uses for authorization.
 
 ## Requirements
 
-This app needs a Postgres instance that's hosted. For a free version for testing/demo purposes, visit [Supabase](https://supabase.com/).
+Based on configuration, this app needs a Postgres, Mongo, MSSQL or MySQL instance. Easiest is probably to use docker containers for these databases.
+Hosted free versions that can also be used:
+1. Postgres: For a free version for testing/demo purposes, visit [Supabase](https://supabase.com/).
+2. MSSQL: For a free version of Azure SQL for testing/demo purposes, visit [Azure SQL](https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql).
 
 ## Running the app
 
