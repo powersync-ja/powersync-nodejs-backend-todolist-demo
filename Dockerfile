@@ -2,7 +2,7 @@
 FROM node:20
 
 ENV DATABASE_URI=
-# Either 'mongodb' or 'postgres'. This defaults to Postgres
+# Either 'mongodb', 'postgres', 'mssql' or 'mysql'. This defaults to Postgres
 ENV DATABASE_TYPE=
 ENV POWERSYNC_PRIVATE_KEY=
 ENV POWERSYNC_PUBLIC_KEY=
