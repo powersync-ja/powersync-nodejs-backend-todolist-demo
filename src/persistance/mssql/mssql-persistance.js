@@ -68,14 +68,15 @@ export const createMSSQLPersister = async (uri) => {
               updateClauses.push(`${escapeIdentifier(key)} = source.${escapeIdentifier(key)}`);
             }
 
-            const updateClause = updateClauses.length > 0 ? `WHEN MATCHED THEN UPDATE SET ${updateClauses.join(', ')}` : `DO NOTHING`;
+            // Update clause is omitted if there are no fields to update (Can only happen if the only record in data is the id)
+            const updateClause = updateClauses.length > 0 ? `WHEN MATCHED THEN UPDATE SET ${updateClauses.join(', ')}` : null;
             const insertClause = `WHEN NOT MATCHED THEN INSERT (${columns}) VALUES (${sourceColumns})`;
 
             const statement = `
             MERGE INTO ${table} AS t
-            USING (SELECT ${columnParamaters}) AS source (${columns})
+            USING (VALUES (${columnParamaters})) AS source (${columns})
               ON t.[id] = source.[id]
-            ${updateClause}
+            ${updateClause ? updateClause : ''}
             ${insertClause};
             `;
 
@@ -131,10 +132,10 @@ export const createMSSQLPersister = async (uri) => {
 
       const statement = `
         MERGE INTO checkpoints AS t
-        USING (SELECT @user_id, @client_id, @checkpoint) AS source (user_id, client_id, checkpoint)
+        USING (VALUES (@user_id, @client_id, @checkpoint)) AS source (user_id, client_id, checkpoint)
           ON t.user_id = source.user_id AND t.client_id = source.client_id
         WHEN MATCHED THEN 
-          UPDATE SET t.checkpoint = t.checkpoint + 1
+          UPDATE SET checkpoint = t.checkpoint + 1
         WHEN NOT MATCHED THEN 
           INSERT (user_id, client_id, checkpoint)
           VALUES (source.user_id, source.client_id, source.checkpoint)
