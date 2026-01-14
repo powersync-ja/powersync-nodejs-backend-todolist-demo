@@ -51,24 +51,29 @@ async function ensureKeys() {
 
 /**
  * Get the JWT token that PowerSync will use to authenticate the user
+ * Provide an optional user_id in the url params query string to use as the subject of the token
+ * If no id is provided, "UserID" is used as the subject
  */
 router.get('/token', async (req, res) => {
-  await ensureKeys();
-  const powerSyncKey = keys.privateKey;
-
   const { user_id = 'UserID ' } = req.query;
+  
+  const token = await generateToken(user_id, {});
+  res.send({
+    token: token,
+    powersync_url: config.powersync.url
+  });
+});
 
-  const token = await new SignJWT({})
-    .setProtectedHeader({
-      alg: powerSyncKey.alg,
-      kid: powerSyncKey.kid
-    })
-    .setSubject(user_id)
-    .setIssuedAt()
-    .setIssuer(config.powersync.jwtIssuer)
-    .setAudience(config.powersync.url)
-    .setExpirationTime('5m')
-    .sign(powerSyncKey.key);
+/**
+ * Get the JWT token that PowerSync will use to authenticate the user
+ * Provide a payload in the body of the request as a JSON object to set custom claims in the JWT
+ * If no payload is provided, an empty object is used as the claims payload
+ */
+router.post('/token', async (req, res) => {
+  const { user_id = 'UserID ' } = req.query;
+  const payload = req.body || {};
+
+  const token = await generateToken(user_id, payload);
   res.send({
     token: token,
     powersync_url: config.powersync.url
@@ -87,3 +92,27 @@ router.get('/keys', async (req, res) => {
 });
 
 export { router as authRouter };
+
+/**
+ * Generates a JWT token for the given user_id and payload
+ * @param {string} user_id - The subject of the JWT
+ * @param {Object} payload - The payload of the JWT
+ * @returns {Promise<string>} The generated JWT token
+ */
+const generateToken = async (user_id, payload) => {
+  await ensureKeys();
+  const powerSyncKey = keys.privateKey;
+  const token = await new SignJWT(payload)
+    .setProtectedHeader({
+      alg: powerSyncKey.alg,
+      kid: powerSyncKey.kid
+    })
+    .setSubject(user_id)
+    .setIssuedAt()
+    .setIssuer(config.powersync.jwtIssuer)
+    .setAudience(config.powersync.url)
+    .setExpirationTime('5m')
+    .sign(powerSyncKey.key);
+
+  return token;
+};

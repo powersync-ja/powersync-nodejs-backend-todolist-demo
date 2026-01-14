@@ -9,6 +9,13 @@ The endpoints are as follows:
 1. GET `/api/auth/token`
 
    - PowerSync uses this endpoint to retrieve a JWT access token which is used for authentication.
+   - Provide an optional user_id url query parameter to set the subject of the JWT
+
+2. POST `/api/auth/token`
+
+   - PowerSync uses this endpoint to retrieve a JWT access token which is used for authentication.
+   - Provide an optional user_id url query parameter to set the subject of the JWT
+   - Provide a JSON body to the request to set custom claims in the JWT
 
 2. GET `/api/auth/keys`
 
