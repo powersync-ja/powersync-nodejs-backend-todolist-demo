@@ -111,7 +111,10 @@ const generateToken = async (user_id, payload) => {
     .setIssuedAt()
     .setIssuer(config.powersync.jwtIssuer)
     .setAudience(config.powersync.url)
-    .setExpirationTime('5m')
+    // Long-lived tokens should only be used for development purposes. 
+    // Powersync won't authenticate tokens that expire on or after 60 minutes.
+    // See: https://docs.powersync.com/installation/authentication-setup/custom
+    .setExpirationTime('60m')
     .sign(powerSyncKey.key);
 
   return token;
