@@ -5,8 +5,8 @@ import { attachmentsRouter } from './attachments.js';
 
 const router = express.Router();
 
-router.use('/auth', authRouter);
-router.use('/data', dataRouter);
+router.use('/auth', express.json(), authRouter);
+router.use('/data', express.json(), dataRouter);
 router.use('/attachments', attachmentsRouter);
 
 export { router as apiRouter };
