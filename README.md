@@ -17,21 +17,35 @@ The endpoints are as follows:
    - Provide an optional user_id url query parameter to set the subject of the JWT
    - Provide a JSON body to the request to set custom claims in the JWT
 
-2. GET `/api/auth/keys`
+3. GET `/api/auth/keys`
 
    - PowerSync uses this endpoint to validate the JWT returned from the endpoint above.
 
-3. PUT `/api/data`
+4. PUT `/api/data`
 
    - PowerSync uses this endpoint to sync upsert events that occurred on the client application.
 
-4. PATCH `/api/data`
+5. PATCH `/api/data`
 
    - PowerSync uses this endpoint to sync update events that occurred on the client application.
 
-5. DELETE `/api/data`
+6. DELETE `/api/data`
 
    - PowerSync uses this endpoint to sync delete events that occurred on the client application.
+
+7. PUT `/api/attachments/:id`
+
+   - PowerSync uses this endpoint to upload a file for use with the [attachments](https://docs.powersync.com/usage/use-case-examples/attachments-files) API.
+
+8. GET `/api/attachments/:id`
+
+   - PowerSync uses this endpoint to download a previously uploaded attachment.
+
+9. DELETE `/api/attachments/:id`
+
+   - PowerSync uses this endpoint to delete a previously uploaded attachment.
+
+> Attachments are stored on the local filesystem under `attachments/` for demo purposes only — there is no auth on these endpoints and the directory is ephemeral under Docker. For production, back the client's storage adapter with an object store (S3, Cloudflare R2, Supabase Storage, etc.).
 
 ## Packages
 
@@ -49,6 +63,7 @@ The endpoints are as follows:
 
 Based on configuration, this app needs a Postgres, Mongo, MSSQL or MySQL instance. Easiest is probably to use docker containers for these databases.
 Hosted free versions that can also be used:
+
 1. Postgres: For a free version for testing/demo purposes, visit [Supabase](https://supabase.com/).
 2. MSSQL: For a free version of Azure SQL for testing/demo purposes, visit [Azure SQL](https://learn.microsoft.com/en-us/azure/azure-sql/database/free-offer?view=azuresql).
 
@@ -115,7 +130,7 @@ Connections                   ttl     opn     rt1     rt5     p50     p90
                               1957    0       0.04    0.03    0.01    89.93
 ```
 
-3. Open the [PowerSync Dashboard](https://powersync.journeyapps.com/) and paste the `Forwarding` URL starting with HTTPS into the Credentials tab of your PowerSync instance e.g.
+3. Open the [PowerSync Dashboard](https://dashboard.powersync.com/) and paste the `Forwarding` URL starting with HTTPS into the Credentials tab of your PowerSync instance e.g.
 
 ```
 JWKS URI
