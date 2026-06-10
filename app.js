@@ -1,12 +1,10 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import { apiRouter } from './src/api/index.js';
 import logRequest from './src/middleware/logger.js';
 import config from './config.js';
 
 const app = express();
 
-app.use(bodyParser.json());
 app.use(logRequest);
 
 app.use((req, res, next) => {

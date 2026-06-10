@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      body-parser:
-        specifier: ^1.20.2
-        version: 1.20.3
       dotenv:
         specifier: ^16.3.1
         version: 16.4.5

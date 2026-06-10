@@ -11,6 +11,9 @@ const config = {
     publicKey: process.env.POWERSYNC_PUBLIC_KEY,
     privateKey: process.env.POWERSYNC_PRIVATE_KEY,
     jwtIssuer: process.env.JWT_ISSUER
+  },
+  attachments: {
+    dir: process.env.ATTACHMENTS_DIR || './attachments'
   }
 };
 
