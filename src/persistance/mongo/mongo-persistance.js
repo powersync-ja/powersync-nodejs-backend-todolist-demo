@@ -26,9 +26,47 @@ export const createMongoPersister = async (uri) => {
         {
           $inc: {
             checkpoint: 1n
+          },
+          $unset: {
+            checkpoint_requested_at: ''
           }
         },
         { upsert: true, returnDocument: 'after' }
+      );
+      return doc.checkpoint;
+    },
+    createCheckpointRequest: async (user_id, client_id, checkpoint_request_id, checkpoint_requested_at) => {
+      const doc = await db.collection('checkpoints').findOneAndUpdate(
+        {
+          user_id,
+          client_id
+        },
+        [
+          {
+            $set: {
+              checkpoint: {
+                $cond: [
+                  { $gt: [checkpoint_request_id, { $ifNull: ['$checkpoint', 0n] }] },
+                  checkpoint_request_id,
+                  '$checkpoint'
+                ]
+              },
+              checkpoint_requested_at: {
+                $cond: [
+                  { $gt: [checkpoint_request_id, { $ifNull: ['$checkpoint', 0n] }] },
+                  checkpoint_requested_at,
+                  '$checkpoint_requested_at'
+                ]
+              },
+              user_id,
+              client_id
+            }
+          }
+        ],
+        {
+          upsert: true,
+          returnDocument: 'after'
+        }
       );
       return doc.checkpoint;
     },

@@ -27,7 +27,8 @@ export const createMySQLPersister = (uri) => {
          (user_id, client_id, checkpoint)
       VALUES (?, ?, 1)
       ON DUPLICATE KEY UPDATE 
-        checkpoint = checkpoint + 1;
+        checkpoint = checkpoint + 1,
+        checkpoint_requested_at = NULL;
       `,
           [user_id, client_id]
         );
@@ -46,6 +47,37 @@ export const createMySQLPersister = (uri) => {
         return checkpoint;
       } catch (ex) {
         await connection.rollback();
+      } finally {
+        connection.release();
+      }
+    },
+    async createCheckpointRequest(user_id, client_id, checkpoint_request_id, checkpoint_requested_at) {
+      const connection = await pool.getConnection();
+      try {
+        await connection.beginTransaction();
+        await connection.query(
+          `
+      INSERT INTO checkpoints
+         (user_id, client_id, checkpoint, checkpoint_requested_at)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        checkpoint_requested_at = IF(VALUES(checkpoint) > checkpoint, VALUES(checkpoint_requested_at), checkpoint_requested_at),
+        checkpoint = GREATEST(checkpoint, VALUES(checkpoint));
+      `,
+          [user_id, client_id, checkpoint_request_id.toString(), checkpoint_requested_at]
+        );
+        const [rows] = await connection.query(
+          `
+           SELECT checkpoint FROM checkpoints WHERE user_id = ? AND client_id = ?;
+           `,
+          [user_id, client_id]
+        );
+
+        await connection.commit();
+        return rows[0].checkpoint;
+      } catch (ex) {
+        await connection.rollback();
+        throw ex;
       } finally {
         connection.release();
       }
