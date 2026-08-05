@@ -33,17 +33,27 @@ The endpoints are as follows:
 
    - PowerSync uses this endpoint to sync delete events that occurred on the client application.
 
-7. PUT `/api/attachments/:id`
+7. POST `/api/data/checkpoint-request`
+
+   - PowerSync clients using custom checkpoint requests use this endpoint to record a checkpoint request after upload processing.
+   - This backend can be used with the [PowerSync Swift Custom Checkpoint Demo](https://github.com/powersync-ja/powersync-swift/tree/main/Demos/CustomCheckpointDemo) to try custom checkpoint requests end to end.
+   - Request body: `{ "user_id": "...", "client_id": "...", "checkpoint_request_id": "..." }`
+   - Response body: `{ "checkpoint_request_id": "..." }`
+   - The returned value is the effective checkpoint request state accepted by the backend. If a newer request is already recorded for the same user/client pair, that newer value is returned.
+   - The `checkpoints.checkpoint` column should be a 64-bit integer type. Add a nullable `checkpoint_requested_at` timestamp column; this route stamps it when it records a request-derived checkpoint, while the legacy `PUT /api/data/checkpoint` route clears it.
+   - In custom write checkpoint sync rules, project `checkpoint_request_id` only for request-derived rows, for example: `SELECT user_id, checkpoint, client_id, CASE WHEN checkpoint_requested_at IS NOT NULL THEN checkpoint END AS checkpoint_request_id FROM checkpoints`. This lets the PowerSync service mark those checkpoints as safe for timely cleanup.
+
+8. PUT `/api/attachments/:id`
 
    - PowerSync uses this endpoint to upload a file for use with the [attachments](https://docs.powersync.com/usage/use-case-examples/attachments-files) API.
 
-8. GET `/api/attachments/:id`
+9. GET `/api/attachments/:id`
 
    - PowerSync uses this endpoint to download a previously uploaded attachment.
 
-9. DELETE `/api/attachments/:id`
+10. DELETE `/api/attachments/:id`
 
-   - PowerSync uses this endpoint to delete a previously uploaded attachment.
+    - PowerSync uses this endpoint to delete a previously uploaded attachment.
 
 > Attachments are stored on the local filesystem under `attachments/` for demo purposes only — there is no auth on these endpoints and the directory is ephemeral under Docker. For production, back the client's storage adapter with an object store (S3, Cloudflare R2, Supabase Storage, etc.).
 

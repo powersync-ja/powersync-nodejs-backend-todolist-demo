@@ -119,7 +119,9 @@ export const createPostgresPersister = (uri) => {
     ON 
         CONFLICT (user_id, client_id)
     DO 
-        UPDATE SET checkpoint = checkpoints.checkpoint + 1
+        UPDATE SET
+          checkpoint = checkpoints.checkpoint + 1,
+          checkpoint_requested_at = NULL
     RETURNING checkpoint;
     `,
         [user_id, client_id]
@@ -129,6 +131,42 @@ export const createPostgresPersister = (uri) => {
        */
       const checkpoint = response.rows[0].checkpoint;
       return checkpoint;
+    },
+    async createCheckpointRequest(user_id, client_id, checkpoint_request_id, checkpoint_requested_at) {
+      const response = await pool.query(
+        `
+    INSERT INTO checkpoints(user_id, client_id, checkpoint, checkpoint_requested_at)
+    VALUES
+        ($1, $2, $3, $4)
+    ON
+        CONFLICT (user_id, client_id)
+    DO
+        UPDATE SET
+          checkpoint = CASE
+            WHEN EXCLUDED.checkpoint > checkpoints.checkpoint THEN EXCLUDED.checkpoint
+            ELSE checkpoints.checkpoint
+          END,
+          checkpoint_requested_at = EXCLUDED.checkpoint_requested_at
+        WHERE EXCLUDED.checkpoint >= checkpoints.checkpoint
+    RETURNING checkpoint;
+    `,
+        [user_id, client_id, checkpoint_request_id.toString(), checkpoint_requested_at]
+      );
+
+      if (response.rows.length > 0) {
+        return BigInt(response.rows[0].checkpoint);
+      }
+
+      const current = await pool.query(
+        `
+    SELECT checkpoint
+    FROM checkpoints
+    WHERE user_id = $1 AND client_id = $2;
+    `,
+        [user_id, client_id]
+      );
+
+      return BigInt(current.rows[0].checkpoint);
     }
   };
   return persister;

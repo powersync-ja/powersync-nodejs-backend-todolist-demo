@@ -1,7 +1,6 @@
 import { URL } from 'url';
 import sql from 'mssql';
 
-
 function escapeIdentifier(identifier) {
   return `[${identifier}]`;
 }
@@ -41,7 +40,6 @@ export const createMSSQLPersister = async (uri) => {
     updateBatch: async (batch) => {
       const transaction = await pool.transaction();
       try {
-
         await transaction.begin();
 
         for (let op of batch) {
@@ -57,7 +55,7 @@ export const createMSSQLPersister = async (uri) => {
             const columns = columnsEscaped.join(', ');
             // Parameter names should not have brackets: @id, @col1, @col3
             const columnParamaters = columnNames.map((c) => `@${c}`).join(', ');
-            const sourceColumns = columnsEscaped.map(column => `source.${column}`).join(', ');
+            const sourceColumns = columnsEscaped.map((column) => `source.${column}`).join(', ');
 
             let updateClauses = [];
             // [[col1] = source.col1, [col3] = source.col3]
@@ -69,7 +67,8 @@ export const createMSSQLPersister = async (uri) => {
             }
 
             // Update clause is omitted if there are no fields to update (Can only happen if the only record in data is the id)
-            const updateClause = updateClauses.length > 0 ? `WHEN MATCHED THEN UPDATE SET ${updateClauses.join(', ')}` : null;
+            const updateClause =
+              updateClauses.length > 0 ? `WHEN MATCHED THEN UPDATE SET ${updateClauses.join(', ')}` : null;
             const insertClause = `WHEN NOT MATCHED THEN INSERT (${columns}) VALUES (${sourceColumns})`;
 
             const statement = `
@@ -86,7 +85,6 @@ export const createMSSQLPersister = async (uri) => {
               request.input(column, with_id[column]);
             }
             await request.query(statement);
-
           } else if (op.op == 'PATCH') {
             const data = op.data;
             const with_id = { ...data, id: op.id ?? data.id };
@@ -128,32 +126,71 @@ export const createMSSQLPersister = async (uri) => {
     async createCheckpoint(user_id, client_id) {
       const transaction = await pool.transaction();
       try {
-      await transaction.begin();
+        await transaction.begin();
 
-      const statement = `
-        MERGE INTO checkpoints AS t
+        const statement = `
+        MERGE INTO checkpoints WITH (HOLDLOCK) AS t
         USING (VALUES (@user_id, @client_id, @checkpoint)) AS source (user_id, client_id, checkpoint)
           ON t.user_id = source.user_id AND t.client_id = source.client_id
         WHEN MATCHED THEN 
-          UPDATE SET checkpoint = t.checkpoint + 1
+          UPDATE SET
+            checkpoint = t.checkpoint + 1,
+            checkpoint_requested_at = NULL
         WHEN NOT MATCHED THEN 
           INSERT (user_id, client_id, checkpoint)
           VALUES (source.user_id, source.client_id, source.checkpoint)
         OUTPUT INSERTED.checkpoint;
       `;
-      const request = transaction.request();
-      request.input('user_id', user_id);
-      request.input('client_id', client_id);
-      request.input('checkpoint', 1);
-      const response = await request.query(statement);
+        const request = transaction.request();
+        request.input('user_id', user_id);
+        request.input('client_id', client_id);
+        request.input('checkpoint', 1);
+        const response = await request.query(statement);
 
-      await transaction.commit();
-      return response.recordset[0].checkpoint;
+        await transaction.commit();
+        return response.recordset[0].checkpoint;
       } catch (e) {
         await transaction.rollback();
         throw e;
       }
-  
+    },
+    async createCheckpointRequest(user_id, client_id, checkpoint_request_id, checkpoint_requested_at) {
+      const transaction = await pool.transaction();
+      try {
+        await transaction.begin();
+
+        const statement = `
+          MERGE INTO checkpoints WITH (HOLDLOCK) AS t
+          USING (VALUES (@user_id, @client_id, @checkpoint, @checkpoint_requested_at)) AS source (user_id, client_id, checkpoint, checkpoint_requested_at)
+            ON t.user_id = source.user_id AND t.client_id = source.client_id
+          WHEN MATCHED AND source.checkpoint >= t.checkpoint THEN
+            UPDATE SET
+              checkpoint = CASE
+                WHEN source.checkpoint > t.checkpoint THEN source.checkpoint
+                ELSE t.checkpoint
+              END,
+              checkpoint_requested_at = source.checkpoint_requested_at
+          WHEN NOT MATCHED THEN
+            INSERT (user_id, client_id, checkpoint, checkpoint_requested_at)
+            VALUES (source.user_id, source.client_id, source.checkpoint, source.checkpoint_requested_at);
+
+          SELECT checkpoint
+          FROM checkpoints
+          WHERE user_id = @user_id AND client_id = @client_id;
+        `;
+        const request = transaction.request();
+        request.input('user_id', user_id);
+        request.input('client_id', client_id);
+        request.input('checkpoint', sql.BigInt, checkpoint_request_id.toString());
+        request.input('checkpoint_requested_at', sql.DateTimeOffset, checkpoint_requested_at);
+        const response = await request.query(statement);
+
+        await transaction.commit();
+        return BigInt(response.recordset[0].checkpoint);
+      } catch (e) {
+        await transaction.rollback();
+        throw e;
+      }
     }
   };
   return persister;
