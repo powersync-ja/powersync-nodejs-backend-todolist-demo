@@ -129,7 +129,7 @@ export const createMSSQLPersister = async (uri) => {
         await transaction.begin();
 
         const statement = `
-        MERGE INTO checkpoints AS t
+        MERGE INTO checkpoints WITH (HOLDLOCK) AS t
         USING (VALUES (@user_id, @client_id, @checkpoint)) AS source (user_id, client_id, checkpoint)
           ON t.user_id = source.user_id AND t.client_id = source.client_id
         WHEN MATCHED THEN 
@@ -160,12 +160,15 @@ export const createMSSQLPersister = async (uri) => {
         await transaction.begin();
 
         const statement = `
-          MERGE INTO checkpoints AS t
+          MERGE INTO checkpoints WITH (HOLDLOCK) AS t
           USING (VALUES (@user_id, @client_id, @checkpoint, @checkpoint_requested_at)) AS source (user_id, client_id, checkpoint, checkpoint_requested_at)
             ON t.user_id = source.user_id AND t.client_id = source.client_id
-          WHEN MATCHED AND source.checkpoint > t.checkpoint THEN
+          WHEN MATCHED AND source.checkpoint >= t.checkpoint THEN
             UPDATE SET
-              checkpoint = source.checkpoint,
+              checkpoint = CASE
+                WHEN source.checkpoint > t.checkpoint THEN source.checkpoint
+                ELSE t.checkpoint
+              END,
               checkpoint_requested_at = source.checkpoint_requested_at
           WHEN NOT MATCHED THEN
             INSERT (user_id, client_id, checkpoint, checkpoint_requested_at)
@@ -183,7 +186,7 @@ export const createMSSQLPersister = async (uri) => {
         const response = await request.query(statement);
 
         await transaction.commit();
-        return response.recordset[0].checkpoint;
+        return BigInt(response.recordset[0].checkpoint);
       } catch (e) {
         await transaction.rollback();
         throw e;

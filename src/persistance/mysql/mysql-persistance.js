@@ -61,20 +61,22 @@ export const createMySQLPersister = (uri) => {
          (user_id, client_id, checkpoint, checkpoint_requested_at)
       VALUES (?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        checkpoint_requested_at = IF(VALUES(checkpoint) > checkpoint, VALUES(checkpoint_requested_at), checkpoint_requested_at),
+        checkpoint_requested_at = IF(VALUES(checkpoint) >= checkpoint, VALUES(checkpoint_requested_at), checkpoint_requested_at),
         checkpoint = GREATEST(checkpoint, VALUES(checkpoint));
       `,
           [user_id, client_id, checkpoint_request_id.toString(), checkpoint_requested_at]
         );
         const [rows] = await connection.query(
           `
-           SELECT checkpoint FROM checkpoints WHERE user_id = ? AND client_id = ?;
+           SELECT CAST(checkpoint AS CHAR) AS checkpoint
+           FROM checkpoints
+           WHERE user_id = ? AND client_id = ?;
            `,
           [user_id, client_id]
         );
 
         await connection.commit();
-        return rows[0].checkpoint;
+        return BigInt(rows[0].checkpoint);
       } catch (ex) {
         await connection.rollback();
         throw ex;

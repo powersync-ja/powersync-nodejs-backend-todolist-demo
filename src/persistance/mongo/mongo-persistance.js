@@ -53,7 +53,7 @@ export const createMongoPersister = async (uri) => {
               },
               checkpoint_requested_at: {
                 $cond: [
-                  { $gt: [checkpoint_request_id, { $ifNull: ['$checkpoint', 0n] }] },
+                  { $gte: [checkpoint_request_id, { $ifNull: ['$checkpoint', 0n] }] },
                   checkpoint_requested_at,
                   '$checkpoint_requested_at'
                 ]
@@ -68,7 +68,7 @@ export const createMongoPersister = async (uri) => {
           returnDocument: 'after'
         }
       );
-      return doc.checkpoint;
+      return BigInt(doc.checkpoint.toString());
     },
     updateBatch: async (batch) => {
       // TODO: Use batches & transactions.

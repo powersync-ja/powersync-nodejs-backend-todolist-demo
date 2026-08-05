@@ -38,7 +38,7 @@ import { createMSSQLPersister } from './mssql/mssql-persistance.js';
  * @param {string} client_id
  * @param {bigint} checkpoint_request_id
  * @param {Date} checkpoint_requested_at
- * @returns {Promise<bigint|string|number>} checkpoint_request_id
+ * @returns {Promise<bigint>} checkpoint_request_id
  * 
  * @typedef {Object} Persister
  * @prop {BatchPersister} updateBatch

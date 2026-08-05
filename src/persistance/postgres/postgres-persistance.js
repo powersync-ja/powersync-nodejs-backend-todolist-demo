@@ -142,16 +142,19 @@ export const createPostgresPersister = (uri) => {
         CONFLICT (user_id, client_id)
     DO
         UPDATE SET
-          checkpoint = EXCLUDED.checkpoint,
+          checkpoint = CASE
+            WHEN EXCLUDED.checkpoint > checkpoints.checkpoint THEN EXCLUDED.checkpoint
+            ELSE checkpoints.checkpoint
+          END,
           checkpoint_requested_at = EXCLUDED.checkpoint_requested_at
-        WHERE EXCLUDED.checkpoint > checkpoints.checkpoint
+        WHERE EXCLUDED.checkpoint >= checkpoints.checkpoint
     RETURNING checkpoint;
     `,
         [user_id, client_id, checkpoint_request_id.toString(), checkpoint_requested_at]
       );
 
       if (response.rows.length > 0) {
-        return response.rows[0].checkpoint;
+        return BigInt(response.rows[0].checkpoint);
       }
 
       const current = await pool.query(
@@ -163,7 +166,7 @@ export const createPostgresPersister = (uri) => {
         [user_id, client_id]
       );
 
-      return current.rows[0].checkpoint;
+      return BigInt(current.rows[0].checkpoint);
     }
   };
   return persister;
