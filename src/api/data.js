@@ -8,22 +8,14 @@ const persistenceFactory = factories[config.database.type];
 
 const { updateBatch, createCheckpoint, createCheckpointRequest } = await persistenceFactory(config.database.uri);
 
+// Maximum signed 64-bit integer (2^63 - 1), matching database BIGINT columns.
 const CHECKPOINT_REQUEST_ID_MAX = 9_223_372_036_854_775_807n;
 
 function parseCheckpointRequestId(value) {
-  if (typeof value === 'bigint') {
-    return value;
+  if (typeof value !== 'string' || !/^[0-9]+$/.test(value)) {
+    throw new Error('checkpoint_request_id must be a base-10 integer string');
   }
-  if (typeof value === 'number') {
-    if (!Number.isSafeInteger(value)) {
-      throw new Error('checkpoint_request_id must be a safe integer when sent as a number');
-    }
-    return BigInt(value);
-  }
-  if (typeof value === 'string' && /^[0-9]+$/.test(value)) {
-    return BigInt(value);
-  }
-  throw new Error('checkpoint_request_id must be an integer');
+  return BigInt(value);
 }
 
 function validateCheckpointRequestId(value) {

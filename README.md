@@ -36,6 +36,7 @@ The endpoints are as follows:
 7. POST `/api/data/checkpoint-request`
 
    - PowerSync clients using custom checkpoint requests use this endpoint to record a checkpoint request after upload processing.
+   - This backend can be used with the [PowerSync Swift Custom Checkpoint Demo](https://github.com/powersync-ja/powersync-swift/tree/main/Demos/CustomCheckpointDemo) to try custom checkpoint requests end to end.
    - Request body: `{ "user_id": "...", "client_id": "...", "checkpoint_request_id": "..." }`
    - Response body: `{ "checkpoint_request_id": "..." }`
    - The returned value is the effective checkpoint request state accepted by the backend. If a newer request is already recorded for the same user/client pair, that newer value is returned.
