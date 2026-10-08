@@ -32,6 +32,9 @@ importers:
       winston:
         specifier: ^3.11.0
         version: 3.14.2
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
     devDependencies:
       '@types/mssql':
         specifier: ^9.1.8
@@ -837,6 +840,9 @@ packages:
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
+
+  zod@4.6.5:
+    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
 snapshots:
 
@@ -1716,3 +1722,5 @@ snapshots:
       is-wsl: 3.1.0
 
   xtend@4.0.2: {}
+
+  zod@4.6.5: {}
