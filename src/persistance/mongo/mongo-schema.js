@@ -1,47 +1,48 @@
-export const types = {
-  date: (v) => new Date(v),
-  boolean: (v) => !!v,
-  string: (v) => String(v),
-  number: (v) => Number(v)
-};
-
-export const schema = {
-  lists: {
-    _id: types.string,
-    created_at: types.date,
-    name: types.string,
-    owner_id: types.string
-  },
-  todos: {
-    _id: types.string,
-    completed: types.boolean,
-    created_at: types.date,
-    created_by: types.string,
-    description: types.string,
-    list_id: types.string,
-    completed_at: types.date,
-    completed_by: types.string
-  }
-};
+import * as z from 'zod';
 
 /**
- * A basic function to convert data according to a schema specified above.
- *
- * A production application should probably use a purpose-built library for this,
- * and use MongoDB Schema Validation to enforce the types in the database.
+ * SQLite represents booleans as integers.
+ * The parser converts these to booleans with default values.
  */
-export function applySchema(tableSchema, data) {
-  const converted = Object.entries(tableSchema)
-    .map(([key, converter]) => {
-      const rawValue = data[key];
-      if (typeof rawValue == 'undefined') {
-        return null;
-      } else if (rawValue == null) {
-        return [key, null];
-      } else {
-        return [key, converter(rawValue)];
-      }
-    })
-    .filter((v) => v != null);
-  return Object.fromEntries(converted);
-}
+const sqliteBoolean = z
+  .int()
+  .nullish()
+  .transform((value) => value == 1);
+
+/**
+ * Our demo client uses a SQL date string, which can be parsed to a JS Date.
+ */
+const sqliteDate = z.string().transform((value) => new Date(value));
+
+/**
+ * Defaults to NOW if no value is provided.
+ */
+const sqliteDateDefaultNow = sqliteDate.nullish().transform((value) => value ?? new Date());
+
+export const List = z.object({
+  _id: z.string(), // This is a UUID string
+  archived: sqliteBoolean,
+  name: z.string(),
+  created_at: sqliteDateDefaultNow,
+  owner_id: z.string()
+});
+
+export const Todo = z.object({
+  _id: z.string(), // This is a UUID string
+  archived: sqliteBoolean,
+  list_id: z.string(),
+  created_at: sqliteDateDefaultNow,
+  description: z.string(),
+  created_by: z.string(),
+  completed: sqliteBoolean,
+  completed_by: z.string().nullish(),
+  completed_at: sqliteDate.nullish()
+});
+
+/**
+ * @type {Record<string, import('zod').ZodObject>}
+ */
+export const schema = {
+  lists: List,
+  todos: Todo
+};

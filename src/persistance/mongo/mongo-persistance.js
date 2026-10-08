@@ -1,5 +1,5 @@
 import * as mongo from 'mongodb';
-import { applySchema, schema } from './mongo-schema.js';
+import { schema } from './mongo-schema.js';
 
 /**
  * Creates a MongoDB batch persister. This is used by the
@@ -72,8 +72,6 @@ export const createMongoPersister = async (uri) => {
     },
     updateBatch: async (batch) => {
       // TODO: Use batches & transactions.
-      // TODO: Do type conversion. This currently persists data from the client as is,
-      // only using strings or numbers for all data.
       for (const op of batch) {
         const tableSchema = schema[op.table];
         if (tableSchema == null) {
@@ -87,7 +85,7 @@ export const createMongoPersister = async (uri) => {
           const doc = { _id: id, ...data };
           delete doc.id;
 
-          const converted = applySchema(tableSchema, doc);
+          const converted = tableSchema.parse(doc);
           await collection.insertOne(converted);
         } else if (op.op == 'PATCH') {
           const data = op.data;
@@ -95,7 +93,8 @@ export const createMongoPersister = async (uri) => {
           const doc = { ...data };
           delete doc.id;
 
-          const converted = applySchema(tableSchema, doc);
+          // PATCH operations don't contain all the fields of a doc
+          const converted = tableSchema.partial().parse(doc);
           await collection.updateOne({ _id: id }, { $set: converted });
         } else if (op.op == 'DELETE') {
           const id = op.id ?? op.data?.id;
