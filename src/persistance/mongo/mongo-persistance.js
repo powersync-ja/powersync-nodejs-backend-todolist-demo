@@ -90,7 +90,7 @@ export const createMongoPersister = async (uri) => {
         } else if (op.op == 'PATCH') {
           const data = op.data;
           const id = op.id ?? data.id;
-          const doc = { _id: id, ...data };
+          const doc = { ...data };
           delete doc.id;
 
           // PATCH operations don't contain all the fields of a doc
